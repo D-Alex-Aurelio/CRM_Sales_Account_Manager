@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="825e8bb7-650b-420e-9235-1a04afd56007" name="Changes" comment="Added account information with dropdown for account picker">
+    <list default="true" id="825e8bb7-650b-420e-9235-1a04afd56007" name="Changes" comment="Added Closed deals under opportunity details">
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -78,7 +78,15 @@
       <option name="project" value="LOCAL" />
       <updated>1758709231356</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Added Closed deals under opportunity details">
+      <option name="closed" value="true" />
+      <created>1758731509862</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1758731509862</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -96,6 +104,7 @@
     <MESSAGE value="Project Initialization" />
     <MESSAGE value="New start for accounts management approach" />
     <MESSAGE value="Added account information with dropdown for account picker" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added account information with dropdown for account picker" />
+    <MESSAGE value="Added Closed deals under opportunity details" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added Closed deals under opportunity details" />
   </component>
 </project>
