@@ -7,6 +7,18 @@ def start_from_one(df):
     df.index = df.index + 1
     return df
 
+def get_duration(df):
+    df['engage_datetime'] = pd.to_datetime(df['engage_date'])
+    df['close_datetime'] = pd.to_datetime(df['close_date'])
+    duration = df['close_datetime'] - df['engage_datetime']
+    duration = duration.dt.days
+    return duration
+
+def add_space_and_capitalize(df):
+    df.columns = df.columns.str.capitalize()
+    df.columns = df.columns.str.replace('_',' ')
+    return df
+
 def add_team_and_product(df, sales_df, product_df):
     df = pd.merge(df,sales_df, on='sales_agent', how='left')
     df = pd.merge(df,product_df, on='product', how='left')
@@ -20,6 +32,8 @@ df_sales_team = pd.read_csv('./data/sales_teams.csv')
 df_accounts_sample = df_accounts.sample(n=5, random_state=116)
 df_accounts_sample = df_accounts_sample.fillna('N/A')
 st.title('CRM Sales Account Manager')
+st.write('Data obtained from Maven Analytics')
+st.link_button('Go to Maven Analytics - Data Playground','https://mavenanalytics.io/data-playground/crm-sales-opportunities')
 st.subheader('by Daniel Alexander Aurelio')
 st.divider()
 selected_account = st.selectbox('Select an account to view.',
@@ -31,6 +45,7 @@ selected_account_info = selected_account_info.astype(str)
 selected_account_info.iloc[0,1] = selected_account_info.iloc[0,1].capitalize()
 selected_account_info.iloc[0,3] = selected_account_info.iloc[0,3]
 selected_account_info.iloc[0,3] = f'{selected_account_info.iloc[0,3]}M USD'
+selected_account_info['sector'] = selected_account_info['sector'].replace({'Technolgy': 'Technology'})
 
 selected_account_info = selected_account_info.T.reset_index()
 selected_account_info.columns = ['variable','values']
@@ -72,29 +87,31 @@ st.bar_chart(closed_deals_prop, x='var', y='Proportion',
              color='Deal Stage', stack=True,
              y_label=' ', horizontal=True)
 
-closed_deals_columns = ['opportunity_id','sales_agent','product','deal_stage','close_date','close_value']
+closed_deals_columns = ['sales_agent','product','deal_stage','engage_date','close_date','close_value']
+
 with st.expander('Details'):
-    with st.container(height=250, border=False):
-        for i, row in selected_pipeline_closed_deals.loc[:,closed_deals_columns].iterrows():
-            with st.container(border=True):
-                col1, col2 = st.columns([0.5,4])
-                col1.subheader(f'{i}.)')
-                row = row.reset_index()
-                row.columns = ['var', 'value']
-                row['var'] = row['var'].str.capitalize()
-                row['var'] = row['var'].str.replace('_',' ')
-                agent = row.iloc[1,1]
-                sales_filter = df_sales_team['sales_agent']==agent
-                manager = df_sales_team.loc[sales_filter, 'manager']
-                office = df_sales_team.loc[sales_filter, 'regional_office']
-                row.iloc[1,1] = f'{row.iloc[1,1]} (*{manager.iloc[0]}, {office.iloc[0]} Office*)'
-                product = row.iloc[2,1]
-                product_filter = df_products['product']==product
-                series = df_products.loc[product_filter, 'series']
-                row.iloc[2,1] = f'{row.iloc[2,1]} *({series.iloc[0]} Series)*'
-                row.iloc[5,0] = f'{row.iloc[5,0]} (USD)'
-                for j in range(len(row)):
-                    col2.write(f'**{row.iloc[j,0]}**: {row.iloc[j,1]}')
+    selected_id = st.selectbox('Select an ID to view details:',
+                               *[selected_pipeline_closed_deals['opportunity_id']])
+
+    closed_id_filter = selected_pipeline_closed_deals['opportunity_id'] == selected_id
+    selected_closed_deal = selected_pipeline_closed_deals.loc[closed_id_filter, closed_deals_columns]
+    product = selected_closed_deal['product'].values[0]
+    selected_product_info = df_products.loc[df_products['product'] == product,:]
+    agent = selected_closed_deal['sales_agent'].values[0]
+    selected_agent_info = df_sales_team.loc[df_sales_team['sales_agent'] == agent,:]
+    selected_closed_deal['duration'] = get_duration(selected_closed_deal)
+    selected_closed_deal = selected_closed_deal[['deal_stage','engage_date','close_date','duration','close_value']]
+    st.write('Deal Information')
+    selected_closed_deal = add_space_and_capitalize(selected_closed_deal)
+    st.dataframe(selected_closed_deal, hide_index=True)
+    st.write('Product Information')
+    selected_product_info = add_space_and_capitalize(selected_product_info)
+    st.dataframe(selected_product_info, hide_index=True)
+    st.write('Sales Agent Information')
+    selected_agent_info = add_space_and_capitalize(selected_agent_info)
+    st.dataframe(selected_agent_info, hide_index=True)
+
+
 
 selected_pipeline_engaging = selected_pipeline.loc[selected_pipeline['deal_stage'].isin(['Engaging']),:]
 dropped_columns_engaging = ['account','deal_stage','close_date','close_value']
@@ -103,6 +120,7 @@ selected_pipeline_engaging = add_team_and_product(selected_pipeline_engaging, df
 selected_pipeline_engaging = start_from_one(selected_pipeline_engaging)
 engaging_deals_count = len(selected_pipeline_engaging)
 st.subheader(f'Deals In Progress (*{engaging_deals_count}*)')
+selected_pipeline_engaging = add_space_and_capitalize(selected_pipeline_engaging)
 st.dataframe(selected_pipeline_engaging)
 
 selected_pipeline_prospecting = selected_pipeline.loc[selected_pipeline['deal_stage'].isin(['Prospecting']),:]
@@ -112,4 +130,5 @@ selected_pipeline_prospecting = add_team_and_product(selected_pipeline_prospecti
 selected_pipeline_prospecting = start_from_one(selected_pipeline_prospecting)
 prospecting_deals_count = len(selected_pipeline_prospecting)
 st.subheader(f'Future Deals (*{prospecting_deals_count}*)')
+selected_pipeline_prospecting = add_space_and_capitalize(selected_pipeline_prospecting)
 st.dataframe(selected_pipeline_prospecting)
